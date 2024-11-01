@@ -7,11 +7,9 @@ import common.MontoyaApiProvider;
 import common.UIProvider;
 import logger.AutoSSRFLogger;
 import pool.CollaboratorThreadPool;
-import pool.SendReqThreadPool;
+import pool.UIThreadPool;
 import scanner.SSRFScanCheck;
 import ui.UIMain;
-
-import java.awt.*;
 
 public class AutoSSRFBurpExtension implements BurpExtension {
 
@@ -61,12 +59,13 @@ public class AutoSSRFBurpExtension implements BurpExtension {
     }
 
     private void loading() {
+        // 加载ui
+        UIMain uiMain = new UIMain(uiProvider);
+        uiProvider.registerSuiteTab("Auto-SSRF", uiMain);
+
         // 加载被动扫描任务
         SSRFScanCheck ssrfScanCheck = new SSRFScanCheck();
         montoyaApiProvider.registerScanCheck(ssrfScanCheck);
-
-        // 加载ui
-        uiProvider.registerSuiteTab("Auto-SSRF", new UIMain());
     }
 
     private void initStartBanner() {
@@ -82,8 +81,8 @@ public class AutoSSRFBurpExtension implements BurpExtension {
     private void unload() {
         Extension extension = montoyaApiProvider.getMontoyaApi().extension();
         extension.registerUnloadingHandler(() -> {
-            SendReqThreadPool.INSTANCE.getPool().shutdownNow();
             CollaboratorThreadPool.INSTANCE.getPool().shutdownNow();
+            UIThreadPool.INSTANCE.getPool().shutdownNow();
         });
     }
 }

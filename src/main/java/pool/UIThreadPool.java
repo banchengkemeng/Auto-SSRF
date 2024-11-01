@@ -4,12 +4,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public enum SendReqThreadPool {
+public enum UIThreadPool {
     INSTANCE;
 
-    private final Integer corePoolSize = 16;
+    private final Integer corePoolSize = 5;
     private final Integer maxPoolSize = 500;
-    private final Integer workQueueLength = 32;
+    private final Integer workQueueLength = 100;
 
     private ThreadPoolExecutor poolExecutor = null;
 
@@ -20,7 +20,7 @@ public enum SendReqThreadPool {
                 5L,
                 TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>(workQueueLength),
-                new NamedThreadFactory("sendReq")
+                new NamedThreadFactory("ui")
         );
     }
 

@@ -4,8 +4,9 @@ import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.collaborator.*;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.requests.HttpRequest;
+import burp.api.montoya.http.message.responses.HttpResponse;
 import pool.CollaboratorThreadPool;
-import pool.SendReqThreadPool;
+import ui.dashboard.StatusEnum;
 
 import java.util.List;
 import java.util.concurrent.*;
@@ -17,18 +18,15 @@ public enum CollaboratorProvider {
 
     private CollaboratorClient client;
 
-    private final ThreadPoolExecutor sendReqPool = SendReqThreadPool.INSTANCE.getPool();
     private final ThreadPoolExecutor collaboratorReqPool = CollaboratorThreadPool.INSTANCE.getPool();
     private final HttpProvider httpProvider = HttpProvider.INSTANCE;
 
-    // 几秒轮询一次
+    // 每隔几次轮询会开始延时
+    private Integer tryCountPer = 5;
+    // 隔几秒进入下一轮轮询
     private Integer delaySeconds = 1;
-    // 请求已完成后最大轮询次数
-    private Integer receivedResponseMaxTryCount = 30;
-    // 总最大轮询次数
-    private Integer totalMaxTryCount = 5 * 60;
-    // 标识请求是否已完成
-    private final ConcurrentHashMap<String, Boolean> reqFinishFlagMap = new ConcurrentHashMap<>();
+    // 最大轮询次数
+    private Integer maxTryCount = 10;
 
     public static void constructCollaboratorProvider(MontoyaApi api) {
         Collaborator collaboratorInstance = api.collaborator();
@@ -44,21 +42,29 @@ public enum CollaboratorProvider {
         return client.generatePayload();
     }
 
-    public CompletableFuture<Boolean> sendReqAndWaitCollaboratorResult(
+    public CompletableFuture<CollaboratorResult> sendReqAndWaitCollaboratorResult(
+            Integer tableId,
             CollaboratorPayload payload,
             HttpRequest httpRequest
     ) {
-        String id = payload.id().toString();
+        UIProvider.INSTANCE.getUiMain().getDashboardTab().getTable()
+                .updateStatus(tableId, StatusEnum.CHECKING);
 
-        // 发送请求
-        CompletableFuture.runAsync(() -> {
-            httpProvider.sendRequest(httpRequest);
-            reqFinishFlagMap.put(id, true);
-        }, sendReqPool);
+        CollaboratorResult collaboratorResult = new CollaboratorResult();
+        collaboratorResult.setSuccess(false);
+        collaboratorResult.setId(tableId);
 
-        // 轮询
         return CompletableFuture.supplyAsync(() -> {
+            // 发请求
+            HttpRequestResponse httpRequestResponse = httpProvider.sendRequest(httpRequest);
+            HttpResponse response = httpRequestResponse.response();
+            if (response == null) {
+                throw new RuntimeException("请求发送失败");
+            }
+            collaboratorResult.setHttpRequestResponse(httpRequestResponse);
+
             int tryCount = 0;
+            // 轮询
             while (true) {
                 // 询问
                 List<Interaction> interactions = client.getInteractions(
@@ -68,29 +74,28 @@ public enum CollaboratorProvider {
                     InteractionType type = interaction.type();
                     // 如果存在HTTP记录, 直接结束
                     if (type == InteractionType.HTTP) {
-                        return true;
+                        collaboratorResult.setSuccess(true);
+                        collaboratorResult.setInteractions(interactions);
+                        return collaboratorResult;
                     }
                 }
                 // 等待
                 try {
-                    TimeUnit.MILLISECONDS.sleep(delaySeconds * 1000);
+                    if (tryCount % tryCountPer == 0) {
+                        TimeUnit.MILLISECONDS.sleep(delaySeconds * 1000);
+                    }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
 
-                tryCount ++;
-                if (tryCount >= totalMaxTryCount) {
-                    break;
-                }
-                Boolean isReqFinished = reqFinishFlagMap.get(id);
-                if (isReqFinished != null && isReqFinished && tryCount >= receivedResponseMaxTryCount) {
-                    break;
-                }
+                tryCount++;
 
+                // 尝试次数达到上限
+                if (tryCount >= maxTryCount) {
+                    break;
+                }
             }
-
-            return false;
+            return collaboratorResult;
         }, collaboratorReqPool);
     }
-
 }

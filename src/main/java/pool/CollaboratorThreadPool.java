@@ -7,9 +7,9 @@ import java.util.concurrent.TimeUnit;
 public enum CollaboratorThreadPool {
     INSTANCE;
 
-    private final Integer corePoolSize = 16;
+    private final Integer corePoolSize = 8;
     private final Integer maxPoolSize = 500;
-    private final Integer workQueueLength = 32;
+    private final Integer workQueueLength = 80;
 
     private ThreadPoolExecutor poolExecutor = null;
 
