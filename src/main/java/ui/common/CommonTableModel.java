@@ -6,7 +6,6 @@ import ui.dashboard.ChangeItem;
 
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableModel;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,7 +84,7 @@ public abstract class CommonTableModel<T extends CommonTableData> extends Abstra
     private Field getField(int column) {
         KV item = this.columns[column];
         String key = item.getKey();
-        Field field = null;
+        Field field;
         try {
             field = this.data.get(0).getClass().getDeclaredField(key);
             field.setAccessible(true);

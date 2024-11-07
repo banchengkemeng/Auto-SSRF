@@ -16,6 +16,7 @@ public class AutoSSRFBurpExtension implements BurpExtension {
     private final MontoyaApiProvider montoyaApiProvider = MontoyaApiProvider.INSTANCE;
 
     private AutoSSRFLogger logger;
+
     private final UIProvider uiProvider = UIProvider.INSTANCE;
 
     @Override

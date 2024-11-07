@@ -9,7 +9,9 @@ import pool.CollaboratorThreadPool;
 import ui.dashboard.StatusEnum;
 
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public enum CollaboratorProvider {
     INSTANCE;
@@ -22,11 +24,11 @@ public enum CollaboratorProvider {
     private final HttpProvider httpProvider = HttpProvider.INSTANCE;
 
     // 每隔几次轮询会开始延时
-    private Integer tryCountPer = 5;
+    private final Integer tryCountPer = 5;
     // 隔几秒进入下一轮轮询
-    private Integer delaySeconds = 1;
+    private final Integer delaySeconds = 1;
     // 最大轮询次数
-    private Integer maxTryCount = 10;
+    private final Integer maxTryCount = 10;
 
     public static void constructCollaboratorProvider(MontoyaApi api) {
         Collaborator collaboratorInstance = api.collaborator();
@@ -65,7 +67,7 @@ public enum CollaboratorProvider {
 
             int tryCount = 0;
             // 轮询
-            while (true) {
+            do {
                 // 询问
                 List<Interaction> interactions = client.getInteractions(
                         InteractionFilter.interactionPayloadFilter(payload.toString())
@@ -91,10 +93,7 @@ public enum CollaboratorProvider {
                 tryCount++;
 
                 // 尝试次数达到上限
-                if (tryCount >= maxTryCount) {
-                    break;
-                }
-            }
+            } while (tryCount < maxTryCount);
             return collaboratorResult;
         }, collaboratorReqPool);
     }

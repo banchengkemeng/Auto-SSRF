@@ -12,6 +12,8 @@ import logger.AutoSSRFLogger;
 import ui.dashboard.DashboardTable;
 import ui.dashboard.DashboardTableData;
 import ui.dashboard.StatusEnum;
+import ui.vuln.VulnTable;
+import ui.vuln.VulnTableData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +24,7 @@ public enum SSRFChecker {
     private final AutoSSRFLogger logger = AutoSSRFLogger.INSTANCE;
     private final CollaboratorProvider collaboratorProvider = CollaboratorProvider.INSTANCE;
     private final DashboardTable dashboardTable = UIProvider.INSTANCE.getUiMain().getDashboardTab().getTable();
+    private final VulnTable vulnTable = UIProvider.INSTANCE.getUiMain().getVulnTab().getTable();
 
     public void check(HttpRequestResponse baseRequestResponse, Integer id) {
 
@@ -68,7 +71,14 @@ public enum SSRFChecker {
             }
 
             dashboardTable.updateStatus(result.getId(), StatusEnum.SUCCESS);
-            // TODO 放入疑似漏洞VulnTable
+            vulnTable.addRow(
+                    VulnTableData.buildVulnTableData(
+                            vulnTable.generateId(),
+                            result.getHttpRequestResponse(),
+                            result.getInteractions()
+                    )
+            );
+
             logger.logToOutput("可能存在SSRF: " + request.url());
         });
     }

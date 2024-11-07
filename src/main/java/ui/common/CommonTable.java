@@ -1,21 +1,28 @@
 package ui.common;
 
 import lombok.Getter;
+import pool.UIThreadPool;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 
 @Getter
 public class CommonTable<T extends CommonTableData> extends JTable {
     protected List<T> tableData;
 
+    private final CommonTableModel<T> tableModel;
+    private final ThreadPoolExecutor uiThreadPool = UIThreadPool.INSTANCE.getPool();
+
     public CommonTable(TableModel tableModel) {
         super(tableModel);
-        this.tableData = ((CommonTableModel<T>) tableModel).getData();
+
+        this.tableModel = (CommonTableModel<T>) tableModel;
+
+        this.tableData = this.tableModel.getData();
 
         // 设置排序
         this.setAutoCreateRowSorter(true);
@@ -59,5 +66,13 @@ public class CommonTable<T extends CommonTableData> extends JTable {
         } else {
             this.setRowSelectionInterval(row, row);
         }
+    }
+
+    public void addRows(List<T> dataList) {
+        dataList.forEach(this::addRow);
+    }
+
+    public void addRow(T data) {
+        uiThreadPool.execute(() -> tableModel.addRow(data));
     }
 }

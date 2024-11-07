@@ -2,7 +2,6 @@ package logger;
 
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.logging.Logging;
-import common.MontoyaApiProvider;
 
 public enum AutoSSRFLogger {
     INSTANCE;

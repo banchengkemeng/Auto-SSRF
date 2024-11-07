@@ -7,8 +7,6 @@ import burp.api.montoya.scanner.ScanCheck;
 import burp.api.montoya.scanner.Scanner;
 import lombok.Getter;
 
-import java.util.concurrent.CompletableFuture;
-
 public enum MontoyaApiProvider {
     INSTANCE;
 

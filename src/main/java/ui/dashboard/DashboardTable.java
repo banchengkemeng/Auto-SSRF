@@ -31,23 +31,11 @@ public class DashboardTable extends CommonTable<DashboardTableData> {
         // 设置某些列的最大列宽
     }
 
-    public void addRows(List<DashboardTableData> dataList) {
-        dataList.forEach(this::addRow);
-    }
-
-    public void addRow(DashboardTableData data) {
-        uiThreadPool.execute(() -> {
-            dashboardTableModel.addRow(data);
-        });
-    }
-
     public void updateStatus(int id, StatusEnum statusEnum) {
-        uiThreadPool.execute(() -> {
-            dashboardTableModel.changeValue(
-                    id,
-                    DashboardTableData.getChangeStatusItem(statusEnum)
-            );
-        });
+        uiThreadPool.execute(() -> dashboardTableModel.changeValue(
+                id,
+                DashboardTableData.getChangeStatusItem(statusEnum)
+        ));
     }
 
     public Integer generateId() {
@@ -98,9 +86,9 @@ public class DashboardTable extends CommonTable<DashboardTableData> {
     private void showPopupMenu(MouseEvent e) {
         ArrayList<DashboardTableData> dashboardTableDataList = new ArrayList<>();
         int[] selectedRows = this.getSelectedRows();
-        for (int i = 0; i < selectedRows.length; i++) {
+        for (int selectedRow : selectedRows) {
             dashboardTableDataList.add(this.tableData.get(
-                    this.getRowSorter().convertRowIndexToModel(selectedRows[i])
+                    this.getRowSorter().convertRowIndexToModel(selectedRow)
             ));
         }
 

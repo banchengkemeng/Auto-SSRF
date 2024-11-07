@@ -1,17 +1,21 @@
-package ui.dashboard;
+package ui.vuln;
 
+import burp.api.montoya.collaborator.Interaction;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.http.message.responses.HttpResponse;
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import ui.common.CommonTableData;
+
+import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
-public class DashboardTableData extends CommonTableData {
+public class VulnTableData extends CommonTableData {
     private Integer id;
-    private String status;
     private String host;
     private String method;
     private String url;
@@ -19,20 +23,20 @@ public class DashboardTableData extends CommonTableData {
     private Integer length;
     private String mime;
     private HttpRequestResponse requestResponse;
+    private List<Interaction> interactions;
 
-    private DashboardTableData(
+    private VulnTableData(
             Integer id,
-            String status,
             String host,
             String method,
             String url,
             Integer statusCode,
             Integer length,
             String mime,
-            HttpRequestResponse requestResponse
+            HttpRequestResponse requestResponse,
+            List<Interaction> interactions
     ) {
         this.id = id;
-        this.status = status;
         this.host = host;
         this.method = method;
         this.url = url;
@@ -40,33 +44,26 @@ public class DashboardTableData extends CommonTableData {
         this.length = length;
         this.mime = mime;
         this.requestResponse = requestResponse;
+        this.interactions = interactions;
     }
 
-    public static ChangeItem getChangeStatusItem(StatusEnum statusEnum) {
-        return new ChangeItem(
-                "status",
-                statusEnum.getText()
-        );
-    }
-
-    public static DashboardTableData buildDashboardTableData(
+    public static VulnTableData buildVulnTableData(
             Integer id,
-            HttpRequestResponse httpRequestResponse
+            HttpRequestResponse httpRequestResponse,
+            List<Interaction> interactions
     ) {
         HttpRequest request = httpRequestResponse.request();
         HttpResponse response = httpRequestResponse.response();
-        return new DashboardTableData(
+        return new VulnTableData(
                 id,
-                StatusEnum.WAITING.getText(),
                 request.url(),
                 request.method(),
                 request.path(),
                 (int) response.statusCode(),
                 response.body().length(),
                 response.statedMimeType().description(),
-                httpRequestResponse
+                httpRequestResponse,
+                interactions
         );
     }
 }
-
-
