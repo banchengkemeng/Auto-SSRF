@@ -9,6 +9,7 @@ import burp.api.montoya.ui.editor.HttpResponseEditor;
 import lombok.Getter;
 import ui.UIMain;
 
+import javax.swing.*;
 import java.awt.*;
 
 public enum UIProvider {
@@ -43,5 +44,13 @@ public enum UIProvider {
 
     public Font currentEditorFont() {
         return userInterface.currentEditorFont();
+    }
+
+    public Font currentDisplayFont() {
+        return userInterface.currentDisplayFont();
+    }
+
+    public Frame getSuiteFrame() {
+        return userInterface.swingUtils().suiteFrame();
     }
 }

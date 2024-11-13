@@ -7,9 +7,9 @@ import java.util.concurrent.TimeUnit;
 public enum UIThreadPool {
     INSTANCE;
 
-    private final Integer corePoolSize = 5;
-    private final Integer maxPoolSize = 500;
-    private final Integer workQueueLength = 100;
+    private Integer corePoolSize = 5;
+    private Integer maxPoolSize = 500;
+    private Integer workQueueLength = 100;
 
     private ThreadPoolExecutor poolExecutor = null;
 
