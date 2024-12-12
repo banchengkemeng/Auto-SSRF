@@ -1,4 +1,4 @@
-package common;
+package common.provider;
 
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.requests.HttpRequest;

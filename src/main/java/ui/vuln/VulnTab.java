@@ -1,6 +1,6 @@
 package ui.vuln;
 
-import common.UIProvider;
+import common.provider.UIProvider;
 import lombok.Getter;
 import ui.common.HttpRequestResponseEditor;
 import ui.vuln.interaction.InteractionTable;

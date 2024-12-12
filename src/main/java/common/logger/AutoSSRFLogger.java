@@ -1,4 +1,4 @@
-package logger;
+package common.logger;
 
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.logging.Logging;

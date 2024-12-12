@@ -1,6 +1,6 @@
 package ui.dashboard;
 
-import pool.UIThreadPool;
+import common.pool.UIThreadPool;
 import ui.common.CommonTable;
 import ui.common.HttpRequestResponseEditor;
 
@@ -8,7 +8,6 @@ import javax.swing.table.TableModel;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 

@@ -6,9 +6,10 @@ import burp.api.montoya.http.message.params.HttpParameter;
 import burp.api.montoya.http.message.params.ParsedHttpParameter;
 import burp.api.montoya.http.message.requests.HttpRequest;
 import cn.hutool.core.util.RandomUtil;
-import common.CollaboratorProvider;
-import common.UIProvider;
-import logger.AutoSSRFLogger;
+import common.provider.CollaboratorProvider;
+import common.provider.UIProvider;
+import checker.updater.ParamsUpdater;
+import common.logger.AutoSSRFLogger;
 import ui.dashboard.DashboardTable;
 import ui.dashboard.DashboardTableData;
 import ui.dashboard.StatusEnum;
@@ -25,6 +26,7 @@ public enum SSRFChecker {
     private final CollaboratorProvider collaboratorProvider = CollaboratorProvider.INSTANCE;
     private final DashboardTable dashboardTable = UIProvider.INSTANCE.getUiMain().getDashboardTab().getTable();
     private final VulnTable vulnTable = UIProvider.INSTANCE.getUiMain().getVulnTab().getTable();
+    private final ParamsUpdater updater = new ParamsUpdater();
 
     public void check(HttpRequestResponse baseRequestResponse, Integer id) {
 
@@ -42,7 +44,7 @@ public enum SSRFChecker {
         }
 
         if (id == null) {
-            // 防止并发生成重复ID
+            // 防止 并发 生成重复ID
             id = dashboardTable.generateId();
             dashboardTable.addRow(DashboardTableData.buildDashboardTableData(
                     id,
@@ -113,7 +115,6 @@ public enum SSRFChecker {
         }
 
         // 更新请求
-        // TODO 只能处理URL BODY COOKIE, 其他情况需要自己处理
-        return request.withUpdatedParameters(updateParameters);
+        return updater.update(request, updateParameters);
     }
 }

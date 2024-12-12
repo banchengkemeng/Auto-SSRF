@@ -1,13 +1,10 @@
 package ui.settings;
 
-import common.CollaboratorProvider;
-import common.UIProvider;
-import pool.CollaboratorThreadPool;
+import common.provider.UIProvider;
+import common.pool.CollaboratorThreadPool;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class SettingsTab extends JPanel {
 

@@ -1,6 +1,6 @@
 package ui;
 
-import common.UIProvider;
+import common.provider.UIProvider;
 import lombok.Getter;
 import ui.dashboard.DashboardTab;
 import ui.settings.SettingsTab;

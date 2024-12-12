@@ -1,4 +1,4 @@
-package pool;
+package common.pool;
 
 import lombok.Getter;
 
@@ -47,6 +47,7 @@ public enum CollaboratorThreadPool {
     }
 
     public void setPoolSize(Integer corePoolSize, Integer maxPoolSize) {
+        // 更新线程池参数时，需要时刻保证: 最大线程数 > 核心线程数
         if (corePoolSize > this.maxPoolSize) {
             this.setMaxPoolSize(maxPoolSize);
             this.setCorePoolSize(corePoolSize);

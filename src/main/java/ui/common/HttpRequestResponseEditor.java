@@ -3,7 +3,7 @@ package ui.common;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.ui.editor.HttpRequestEditor;
 import burp.api.montoya.ui.editor.HttpResponseEditor;
-import common.UIProvider;
+import common.provider.UIProvider;
 import lombok.Data;
 
 import javax.swing.*;

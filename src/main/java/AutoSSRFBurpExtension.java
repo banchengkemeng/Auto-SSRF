@@ -1,13 +1,13 @@
 import burp.api.montoya.BurpExtension;
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.extension.Extension;
-import common.CollaboratorProvider;
-import common.HttpProvider;
-import common.MontoyaApiProvider;
-import common.UIProvider;
-import logger.AutoSSRFLogger;
-import pool.CollaboratorThreadPool;
-import pool.UIThreadPool;
+import common.provider.CollaboratorProvider;
+import common.provider.HttpProvider;
+import common.provider.MontoyaApiProvider;
+import common.provider.UIProvider;
+import common.logger.AutoSSRFLogger;
+import common.pool.CollaboratorThreadPool;
+import common.pool.UIThreadPool;
 import scanner.SSRFScanCheck;
 import ui.UIMain;
 

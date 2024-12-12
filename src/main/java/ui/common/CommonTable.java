@@ -1,7 +1,7 @@
 package ui.common;
 
 import lombok.Getter;
-import pool.UIThreadPool;
+import common.pool.UIThreadPool;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;

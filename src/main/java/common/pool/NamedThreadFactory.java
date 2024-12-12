@@ -1,4 +1,4 @@
-package pool;
+package common.pool;
 
 import lombok.NonNull;
 
@@ -18,7 +18,7 @@ public class NamedThreadFactory implements ThreadFactory {
             threadGroup = (s != null) ? s.getThreadGroup() :
                     Thread.currentThread().getThreadGroup();
             if (null==name || name.trim().isEmpty()){
-                name = "pool";
+                name = "common/pool";
             }
             AtomicInteger poolNumber = new AtomicInteger(1);
             namePrefix = name +"-"+

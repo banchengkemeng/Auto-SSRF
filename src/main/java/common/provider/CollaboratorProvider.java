@@ -1,11 +1,12 @@
-package common;
+package common.provider;
 
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.collaborator.*;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.http.message.responses.HttpResponse;
-import pool.CollaboratorThreadPool;
+import common.CollaboratorResult;
+import common.pool.CollaboratorThreadPool;
 import ui.dashboard.StatusEnum;
 
 import java.util.List;

@@ -1,6 +1,6 @@
 package ui.dashboard;
 
-import common.UIProvider;
+import common.provider.UIProvider;
 import lombok.Getter;
 import ui.common.HttpRequestResponseEditor;
 

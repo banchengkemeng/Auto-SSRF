@@ -1,4 +1,4 @@
-package common;
+package common.provider;
 
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.core.Registration;
@@ -9,7 +9,6 @@ import burp.api.montoya.ui.editor.HttpResponseEditor;
 import lombok.Getter;
 import ui.UIMain;
 
-import javax.swing.*;
 import java.awt.*;
 
 public enum UIProvider {

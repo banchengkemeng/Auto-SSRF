@@ -1,4 +1,4 @@
-package pool;
+package common.pool;
 
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
