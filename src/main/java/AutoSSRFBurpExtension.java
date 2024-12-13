@@ -1,13 +1,14 @@
 import burp.api.montoya.BurpExtension;
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.extension.Extension;
+import common.logger.AutoSSRFLogger;
+import common.pool.CollaboratorThreadPool;
+import common.pool.UIThreadPool;
 import common.provider.CollaboratorProvider;
 import common.provider.HttpProvider;
 import common.provider.MontoyaApiProvider;
 import common.provider.UIProvider;
-import common.logger.AutoSSRFLogger;
-import common.pool.CollaboratorThreadPool;
-import common.pool.UIThreadPool;
+import scanner.SSRFHttpHandler;
 import scanner.SSRFScanCheck;
 import ui.UIMain;
 
@@ -67,6 +68,11 @@ public class AutoSSRFBurpExtension implements BurpExtension {
         // 加载被动扫描任务
         SSRFScanCheck ssrfScanCheck = new SSRFScanCheck();
         montoyaApiProvider.registerScanCheck(ssrfScanCheck);
+
+        // 加载tools扫描任务
+        SSRFHttpHandler ssrfHttpHandler = new SSRFHttpHandler();
+        HttpProvider.INSTANCE.registerHttpHandler(ssrfHttpHandler);
+
     }
 
     private void initStartBanner() {

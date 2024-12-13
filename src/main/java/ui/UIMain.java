@@ -32,16 +32,19 @@ public class UIMain extends JTabbedPane {
         this.addTab("插件配置", settingsTab);
 
         // 主题适配
-        applyTheme(
-                this,
-                dashboardTab,
-                dashboardTab.getTable()
-        );
+        applyTheme(this);
     }
 
-    private void applyTheme(Component... components) {
-        for (Component component : components) {
-            provider.applyThemeToComponent(component);
+    private void applyTheme(Component component) {
+        provider.applyThemeToComponent(component);
+        if (component instanceof Container) {
+            Container container = (Container) component;
+            synchronized (container.getTreeLock()) {
+                Component[] components = container.getComponents();
+                for (Component comp : components) {
+                    applyTheme(comp);
+                }
+            }
         }
     }
 }
