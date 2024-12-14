@@ -11,7 +11,7 @@ import java.util.List;
 
 public class JSONParamsUpdater implements IParamsUpdater {
     @Override
-    public HttpRequest update(HttpRequest request, List<? extends HttpParameter> parameters) throws UpdaterException {
+    public HttpRequest update(HttpRequest request, List<HttpParameter> parameters) throws UpdaterException {
         String body = request.bodyToString();
         JSONObject params = JSONUtil.parseObj(body);
         for (HttpParameter parameter : parameters) {

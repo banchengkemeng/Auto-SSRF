@@ -9,7 +9,7 @@ import java.util.List;
 
 public class DefaultParamsUpdater implements IParamsUpdater {
     @Override
-    public HttpRequest update(HttpRequest request, List<? extends HttpParameter> parameters) throws UpdaterException {
-        return request.withUpdatedParameters((List<HttpParameter>) parameters);
+    public HttpRequest update(HttpRequest request, List<HttpParameter> parameters) throws UpdaterException {
+        return request.withUpdatedParameters(parameters);
     }
 }

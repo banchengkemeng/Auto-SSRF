@@ -9,7 +9,7 @@ import java.util.List;
 
 public class XMLAttributeParamsUpdater implements IParamsUpdater {
     @Override
-    public HttpRequest update(HttpRequest request, List<? extends HttpParameter> parameters) throws UpdaterException {
+    public HttpRequest update(HttpRequest request, List<HttpParameter> parameters) throws UpdaterException {
         throw new UpdaterException("暂时无法处理 XML_ATTRIBUTE 类型的请求体");
     }
 }

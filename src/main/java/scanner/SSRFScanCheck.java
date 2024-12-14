@@ -7,6 +7,7 @@ import burp.api.montoya.scanner.ScanCheck;
 import burp.api.montoya.scanner.audit.insertionpoint.AuditInsertionPoint;
 import burp.api.montoya.scanner.audit.issues.AuditIssue;
 import checker.SSRFChecker;
+import common.logger.AutoSSRFLogger;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,6 +18,7 @@ public class SSRFScanCheck implements ScanCheck {
     @Setter
     private static boolean enabled = true;
     private final SSRFChecker ssrfChecker = SSRFChecker.INSTANCE;
+    private final AutoSSRFLogger logger = AutoSSRFLogger.INSTANCE;
 
     @Override
     public AuditResult activeAudit(HttpRequestResponse baseRequestResponse, AuditInsertionPoint auditInsertionPoint) {
@@ -26,7 +28,11 @@ public class SSRFScanCheck implements ScanCheck {
     @Override
     public AuditResult passiveAudit(HttpRequestResponse baseRequestResponse) {
         if (enabled) {
-            ssrfChecker.check(baseRequestResponse, null);
+            try {
+                ssrfChecker.check(baseRequestResponse, null);
+            } catch (RuntimeException e) {
+                logger.logToError(e);
+            }
         }
         return Collections::emptyList;
     }
