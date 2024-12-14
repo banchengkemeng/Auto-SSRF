@@ -6,6 +6,7 @@ import burp.api.montoya.http.message.params.HttpParameter;
 import burp.api.montoya.http.message.params.ParsedHttpParameter;
 import burp.api.montoya.http.message.requests.HttpRequest;
 import cn.hutool.core.util.RandomUtil;
+import common.CollaboratorResult;
 import common.provider.CollaboratorProvider;
 import common.provider.UIProvider;
 import checker.updater.ParamsUpdater;

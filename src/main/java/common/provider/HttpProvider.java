@@ -1,7 +1,9 @@
 package common.provider;
 
 import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.core.Registration;
 import burp.api.montoya.http.Http;
+import burp.api.montoya.http.handler.HttpHandler;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.requests.HttpRequest;
 
@@ -16,5 +18,9 @@ public enum HttpProvider {
 
     public HttpRequestResponse sendRequest(HttpRequest request) {
         return http.sendRequest(request);
+    }
+
+    public Registration registerHttpHandler(HttpHandler handler) {
+        return http.registerHttpHandler(handler);
     }
 }
