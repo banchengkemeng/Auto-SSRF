@@ -12,8 +12,7 @@ Auto-SSRF是一款基于BurpSuite MontoyaApi的自动SSRF漏洞探测插件
 - [x] 可疑点使用dnslog探测
 - [x] 线程池大小可配置
 - [x] 支持JSON请求体的扫描
-- [ ] 支持XML请求体的扫描
-- [ ] 支持MULTIPART请求体的扫描
+- [x] 支持XML请求体的扫描
 - [ ] 任务去重，防止重复扫描拉低效率
 - [ ] 接入SRC厂商提供的SSRF靶子
 - [ ] 探测127.0.0.1消除误报
