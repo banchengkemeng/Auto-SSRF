@@ -60,6 +60,20 @@ public class AutoSSRFBurpExtension implements BurpExtension {
         UIProvider.constructUIProvider(api);
     }
 
+    private void initStartBanner() {
+        logger.logToOutput("\n" +
+                "                _           _____ _____ _____  ______ \n" +
+                "     /\\        | |         / ____/ ____|  __ \\|  ____|\n" +
+                "    /  \\  _   _| |_ ___   | (___| (___ | |__) | |__   \n" +
+                "   / /\\ \\| | | | __/ _ \\   \\___ \\\\___ \\|  _  /|  __|  \n" +
+                "  / ____ \\ |_| | || (_) |  ____) |___) | | \\ \\| |     \n" +
+                " /_/    \\_\\__,_|\\__\\___/  |_____/_____/|_|  \\_\\_|     \n");
+        logger.logToOutput("Author: 半程客梦");
+        logger.logToOutput("WeChat: banc000");
+        logger.logToOutput("Github: https://github.com/banchengkemeng");
+        logger.logToOutput("插件正在加载, 请稍候...");
+    }
+
     private void loading() {
         // 加载ui
         UIMain uiMain = new UIMain(uiProvider);
@@ -73,12 +87,6 @@ public class AutoSSRFBurpExtension implements BurpExtension {
         SSRFHttpHandler ssrfHttpHandler = new SSRFHttpHandler();
         HttpProvider.INSTANCE.registerHttpHandler(ssrfHttpHandler);
 
-    }
-
-    private void initStartBanner() {
-        logger.logToOutput("Auto-SSRF");
-        logger.logToOutput("Author: 半程客梦");
-        logger.logToOutput("插件正在加载, 请稍候...");
     }
 
     private void initEndBanner() {
