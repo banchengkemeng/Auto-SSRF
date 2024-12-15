@@ -50,7 +50,7 @@ public class Settings {
         }
 
         public void setProxyReal(boolean proxy) {
-            SSRFHttpHandler.setRepeaterEnabled(proxy);
+            SSRFHttpHandler.setProxyEnabled(proxy);
             setProxy(proxy);
         }
 
