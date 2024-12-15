@@ -1,4 +1,4 @@
-![Auto-SSRF](https://socialify.git.ci/banchengkemeng/Auto-SSRF/image?description=1&font=KoHo&forks=1&issues=1&language=1&name=1&owner=1&pattern=Circuit%20Board&pulls=1&stargazers=1&theme=Light)
+![Auto-SSRF](https://socialify.git.ci/banchengkemeng/Auto-SSRF/image?description=1&font=KoHo&forks=1&issues=1&language=1&name=1&owner=1&pattern=Transparent&pulls=1&stargazers=1&theme=Light)
 # 项目描述
 Auto-SSRF是一款基于BurpSuite MontoyaApi的自动SSRF漏洞探测插件, 捕获BurpSuite 流经Passive Audit、Proxy、Repeater的流量进行SSRF漏洞探测分析。
 
