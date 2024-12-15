@@ -2,21 +2,24 @@ package ui.settings;
 
 import checker.SSRFChecker;
 import checker.filter.cache.FilterCache;
+import cn.hutool.core.lang.func.VoidFunc;
 import common.logger.AutoSSRFLogger;
-import common.pool.CollaboratorThreadPool;
 import common.provider.UIProvider;
 import scanner.SSRFHttpHandler;
 import scanner.SSRFScanCheck;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class SettingsTab extends JPanel {
 
     private final UIProvider uiProvider = UIProvider.INSTANCE;
-    private final CollaboratorThreadPool collaboratorThreadPool = CollaboratorThreadPool.INSTANCE;
+    private final Settings settings = new Settings();
 
     public SettingsTab() {
         this.setLayout(null);
@@ -34,14 +37,22 @@ public class SettingsTab extends JPanel {
         );
 
         // 缓存配置
-        createCacheSettingUI(
+        Component cacheSettingUIEndComponent = createCacheSettingUI(
                 threadPoolSettingUIEndComponent.getX(),
                 threadPoolSettingUIEndComponent.getY() + threadPoolSettingUIEndComponent.getHeight()
+        );
+
+        // 保存所有配置
+        saveAllSettingUI(
+                cacheSettingUIEndComponent.getX(),
+                cacheSettingUIEndComponent.getY() + cacheSettingUIEndComponent.getHeight()
         );
     }
 
     private Component createExtensionsSettingUI(int rootX, int rootY) {
         Font burpFont = uiProvider.currentDisplayFont();
+        Settings.Extensions extensions = settings.getExtensions();
+
         JLabel globalSettingLabel = new JLabel("插件配置");
         globalSettingLabel.setFont(createBolderFont(burpFont));
         globalSettingLabel.setBounds(
@@ -58,9 +69,9 @@ public class SettingsTab extends JPanel {
                 18,
                 20
         );
-        passiveCheckbox.setSelected(SSRFScanCheck.isEnabled());
-        SSRFScanCheck.setEnabled(SSRFScanCheck.isEnabled());
-        passiveCheckbox.addActionListener(e -> SSRFScanCheck.setEnabled(passiveCheckbox.isSelected()));
+        passiveCheckbox.setSelected(extensions.isPassive());
+        SSRFScanCheck.setEnabled(extensions.isPassive());
+        passiveCheckbox.addActionListener(e -> extensions.setPassiveReal(passiveCheckbox.isSelected()));
         JLabel passiveCheckboxLabel = new JLabel("被动扫描");
         setCheckboxFontAndBounds(passiveCheckbox, passiveCheckboxLabel);
 
@@ -71,9 +82,9 @@ public class SettingsTab extends JPanel {
                 18,
                 20
         );
-        proxyCheckbox.setSelected(SSRFHttpHandler.isProxyEnabled());
-        SSRFHttpHandler.setProxyEnabled(SSRFHttpHandler.isProxyEnabled());
-        proxyCheckbox.addActionListener(e -> SSRFHttpHandler.setProxyEnabled(proxyCheckbox.isSelected()));
+        proxyCheckbox.setSelected(extensions.isProxy());
+        SSRFHttpHandler.setProxyEnabled(extensions.isProxy());
+        proxyCheckbox.addActionListener(e -> extensions.setProxyReal(proxyCheckbox.isSelected()));
         JLabel proxyCheckboxLabel = new JLabel("扫描Proxy");
         setCheckboxFontAndBounds(proxyCheckbox, proxyCheckboxLabel);
 
@@ -84,9 +95,9 @@ public class SettingsTab extends JPanel {
                 18,
                 20
         );
-        repeaterCheckbox.setSelected(SSRFHttpHandler.isRepeaterEnabled());
-        SSRFHttpHandler.setRepeaterEnabled(SSRFHttpHandler.isRepeaterEnabled());
-        repeaterCheckbox.addActionListener(e -> SSRFHttpHandler.setRepeaterEnabled(repeaterCheckbox.isSelected()));
+        repeaterCheckbox.setSelected(extensions.isRepeater());
+        SSRFHttpHandler.setRepeaterEnabled(extensions.isRepeater());
+        repeaterCheckbox.addActionListener(e -> extensions.setRepeaterReal(repeaterCheckbox.isSelected()));
         JLabel repeaterCheckboxLabel = new JLabel("扫描Repeater");
         setCheckboxFontAndBounds(repeaterCheckbox, repeaterCheckboxLabel);
 
@@ -97,12 +108,13 @@ public class SettingsTab extends JPanel {
         this.add(proxyCheckboxLabel);
         this.add(repeaterCheckbox);
         this.add(repeaterCheckboxLabel);
-
         return repeaterCheckbox;
     }
 
     private Component createThreadPoolSettingUI(int rootX, int rootY) {
         Font burpFont = uiProvider.currentDisplayFont();
+        Settings.ThreadPool threadPool = settings.getThreadPool();
+
         JLabel threadPoolSettingLabel = new JLabel("线程池配置");
         threadPoolSettingLabel.setFont(createBolderFont(burpFont));
         threadPoolSettingLabel.setBounds(
@@ -122,7 +134,7 @@ public class SettingsTab extends JPanel {
                 200, 20
         );
         corePoolSizeInput.setText(
-                String.valueOf(collaboratorThreadPool.getCorePoolSize())
+                String.valueOf(threadPool.getCorePoolSize())
         );
 
         // 最大线程数输入框
@@ -135,7 +147,7 @@ public class SettingsTab extends JPanel {
                 200, 20
         );
         maxPoolSizeInput.setText(
-                String.valueOf(collaboratorThreadPool.getMaxPoolSize())
+                String.valueOf(threadPool.getMaxPoolSize())
         );
 
         JButton saveButton = new JButton("生效");
@@ -144,9 +156,9 @@ public class SettingsTab extends JPanel {
                 maxPoolSizeLabel.getY() + maxPoolSizeInput.getHeight() + 5,
                 60, 20
         );
-        saveButton.addActionListener(e -> collaboratorThreadPool.setPoolSize(
-                Integer.valueOf(corePoolSizeInput.getText()),
-                Integer.valueOf(maxPoolSizeInput.getText())
+        saveButton.addActionListener(e -> threadPool.setPoolSize(
+                Integer.parseInt(corePoolSizeInput.getText()),
+                Integer.parseInt(maxPoolSizeInput.getText())
         ));
 
         this.add(threadPoolSettingLabel);
@@ -158,8 +170,10 @@ public class SettingsTab extends JPanel {
         return saveButton;
     }
 
-    private void createCacheSettingUI(int rootX, int rootY) {
+    private Component createCacheSettingUI(int rootX, int rootY) {
         Font burpFont = uiProvider.currentDisplayFont();
+        Settings.Cache cacheSetting = settings.getCache();
+
         JLabel cacheSettingLabel = new JLabel("缓存配置");
         cacheSettingLabel.setFont(createBolderFont(burpFont));
         cacheSettingLabel.setBounds(
@@ -178,14 +192,16 @@ public class SettingsTab extends JPanel {
                 80, 20
         );
 
-        File cacheFile = new File(FilterCache.getPath());
         JTextField cacheFilePathInput = new JTextField();
         cacheFilePathInput.setBounds(
                 cacheFilePathChooserLabel.getX() + cacheFilePathChooserLabel.getWidth() + 5,
                 cacheFilePathChooserLabel.getY(),
                 200, 20
         );
-        cacheFilePathInput.setText(cacheFile.getParentFile().getAbsolutePath());
+        cacheFilePathInput.setText(cacheSetting.getCacheFilePath());
+        cacheFilePathInput.getDocument().addDocumentListener(
+                buildDocumentListener(e -> cacheSetting.setCacheFilePath(cacheFilePathInput.getText()))
+        );
 
         JButton fileChooserButton = new JButton("选择文件夹");
         fileChooserButton.setBounds(
@@ -214,7 +230,10 @@ public class SettingsTab extends JPanel {
                 cacheFileNameLabel.getY(),
                 200, 20
         );
-        cacheFileNameInput.setText(cacheFile.getName());
+        cacheFileNameInput.setText(cacheSetting.getCacheFileName());
+        cacheFileNameInput.getDocument().addDocumentListener(
+                buildDocumentListener(e -> cacheSetting.setCacheFileName(cacheFileNameInput.getText()))
+        );
 
         JLabel cacheObjCountLabel = new JLabel("缓存对象数:");
         cacheObjCountLabel.setFont(createNormalFont(burpFont));
@@ -265,8 +284,7 @@ public class SettingsTab extends JPanel {
         saveCacheFileButton.addActionListener(e -> {
             FilterCache<String, Byte> cache = SSRFChecker.INSTANCE.getFilter().getCache();
             try {
-                String path = cacheFilePathInput.getText() + "\\" + cacheFileNameInput.getText();
-                FilterCache.setPath(path);
+                FilterCache.setPath(cacheSetting.getCacheFilePathHaveName());
                 cache.store();
             } catch (IOException exception) {
                 AutoSSRFLogger.INSTANCE.logToError(exception);
@@ -285,6 +303,18 @@ public class SettingsTab extends JPanel {
         this.add(clearCacheFileButton);
         this.add(deleteCacheFileButton);
         this.add(saveCacheFileButton);
+        return cacheCountButton;
+    }
+
+    private void saveAllSettingUI(int rootX, int rootY) {
+        JButton saveAllSettingButton = new JButton("保存配置");
+        saveAllSettingButton.setBounds(
+                rootX,
+                rootY + 15,
+                80, 20
+        );
+        saveAllSettingButton.addActionListener(e -> Settings.saveAutoSSRFExtensionSetting(settings));
+        this.add(saveAllSettingButton);
     }
 
     private void setButtonBounds(Component positionComponent, Component currentComponent) {
@@ -321,5 +351,24 @@ public class SettingsTab extends JPanel {
 
     private Font createNormalFont(Font burpFont) {
         return new Font(burpFont.getName(), Font.PLAIN, burpFont.getSize() + 1);
+    }
+
+    private DocumentListener buildDocumentListener(Consumer<DocumentEvent> function) {
+        return new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                function.accept(e);
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                function.accept(e);
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                function.accept(e);
+            }
+        };
     }
 }
