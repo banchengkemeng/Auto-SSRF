@@ -10,7 +10,7 @@ import java.util.*;
 public class ParamsUpdater implements IParamsUpdater {
 
     @Override
-    public HttpRequest update(HttpRequest request, List<? extends HttpParameter> parameters) throws UpdaterException {
+    public HttpRequest update(HttpRequest request, List<HttpParameter> parameters) throws UpdaterException {
         // 获取参数类型
         HashMap<HttpParameterType, List<HttpParameter>> typeMap = new HashMap<>();
         for (HttpParameter parameter : parameters) {
@@ -18,7 +18,7 @@ public class ParamsUpdater implements IParamsUpdater {
                 List<HttpParameter> httpParameters = typeMap.get(parameter.type());
                 httpParameters.add(parameter);
             } else {
-                typeMap.put(parameter.type(), Collections.singletonList(parameter));
+                typeMap.put(parameter.type(), new ArrayList<>(Collections.singletonList(parameter)));
             }
         }
 

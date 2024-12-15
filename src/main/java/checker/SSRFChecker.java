@@ -5,12 +5,13 @@ import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.params.HttpParameter;
 import burp.api.montoya.http.message.params.ParsedHttpParameter;
 import burp.api.montoya.http.message.requests.HttpRequest;
+import checker.filter.RequestResponseFilter;
+import checker.updater.ParamsUpdater;
 import cn.hutool.core.util.RandomUtil;
-import common.CollaboratorResult;
+import common.logger.AutoSSRFLogger;
 import common.provider.CollaboratorProvider;
 import common.provider.UIProvider;
-import checker.updater.ParamsUpdater;
-import common.logger.AutoSSRFLogger;
+import lombok.Getter;
 import ui.dashboard.DashboardTable;
 import ui.dashboard.DashboardTableData;
 import ui.dashboard.StatusEnum;
@@ -27,6 +28,8 @@ public enum SSRFChecker {
     private final CollaboratorProvider collaboratorProvider = CollaboratorProvider.INSTANCE;
     private final DashboardTable dashboardTable = UIProvider.INSTANCE.getUiMain().getDashboardTab().getTable();
     private final VulnTable vulnTable = UIProvider.INSTANCE.getUiMain().getVulnTab().getTable();
+    @Getter
+    private final RequestResponseFilter filter = new RequestResponseFilter();
     private final ParamsUpdater updater = new ParamsUpdater();
 
     public void check(HttpRequestResponse baseRequestResponse, Integer id) {
@@ -34,12 +37,17 @@ public enum SSRFChecker {
         HttpRequest request = baseRequestResponse.request();
         CollaboratorPayload payload = collaboratorProvider.generatePayload();
 
-        if (id == null) {
-            // 防止重复扫描
+        // 过滤
+        if (!filter.filter(baseRequestResponse, id)) {
+            return;
         }
 
-        // 解析参数, 是否存在URL参数以及替换 url -> dnslog
-        HttpRequest newRequest = parseURLParameterAndReplaceToPayload(request, payload);
+        // 参数填充&构建请求
+        HttpRequest newRequest = updateParameterAndBuildRequest(
+                request,
+                filter.getParameters(),
+                payload
+        );
         if (newRequest == null) {
             return;
         }
@@ -86,33 +94,20 @@ public enum SSRFChecker {
         });
     }
 
-    private boolean checkParameter(ParsedHttpParameter parameter) {
-        String name = parameter.name().toLowerCase();
-        String value = parameter.value().toLowerCase();
-        return name.contains("url") || value.contains("http") || value.contains("https");
-    }
-
-    private HttpRequest parseURLParameterAndReplaceToPayload(
+    private HttpRequest updateParameterAndBuildRequest(
             HttpRequest request,
+            List<ParsedHttpParameter> parameters,
             CollaboratorPayload payload
     ) {
-        List<ParsedHttpParameter> parameters = request.parameters();
-        ArrayList<HttpParameter> updateParameters = new ArrayList<>();
-        for (ParsedHttpParameter parameter : parameters) {
-            if (checkParameter(parameter)) {
-                // 替换成collaborator
-                HttpParameter newParameter = HttpParameter.parameter(
-                        parameter.name(),
-                        "http://" + payload.toString() + "/" + RandomUtil.randomString(6),
-                        parameter.type()
-                );
-                updateParameters.add(newParameter);
-            }
-        }
-
-        // 无url相关参数,直接停止
-        if (updateParameters.isEmpty()) {
-            return null;
+        // 更新参数
+        List<HttpParameter> updateParameters = new ArrayList<>();
+        for (HttpParameter parameter : parameters) {
+            HttpParameter newParameter = HttpParameter.parameter(
+                    parameter.name(),
+                    "http://" + payload.toString() + "/" + RandomUtil.randomString(6),
+                    parameter.type()
+            );
+            updateParameters.add(newParameter);
         }
 
         // 更新请求

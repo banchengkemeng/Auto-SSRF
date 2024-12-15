@@ -86,7 +86,6 @@ public class AutoSSRFBurpExtension implements BurpExtension {
         // 加载tools扫描任务
         SSRFHttpHandler ssrfHttpHandler = new SSRFHttpHandler();
         HttpProvider.INSTANCE.registerHttpHandler(ssrfHttpHandler);
-
     }
 
     private void initEndBanner() {
