@@ -1,8 +1,8 @@
 package ui.settings;
 
 import checker.SSRFChecker;
+import checker.filter.cache.DeduplicationFilterCacheManager;
 import checker.filter.cache.FilterCache;
-import cn.hutool.core.lang.func.VoidFunc;
 import common.logger.AutoSSRFLogger;
 import common.provider.UIProvider;
 import scanner.SSRFHttpHandler;
@@ -14,7 +14,6 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.io.IOException;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class SettingsTab extends JPanel {
 
@@ -260,7 +259,8 @@ public class SettingsTab extends JPanel {
                 90, 20
         );
         cacheCountButton.addActionListener(e -> {
-            FilterCache<String, Byte> cache = SSRFChecker.INSTANCE.getFilter().getCache();
+
+            FilterCache<String, Byte> cache = DeduplicationFilterCacheManager.INSTANCE.getCache();
             Integer cacheCount = cache.getCacheCount();
             cacheObjCountInput.setText(String.valueOf(cacheCount));
         });
@@ -268,21 +268,21 @@ public class SettingsTab extends JPanel {
         JButton clearCacheFileButton = new JButton("清理缓存");
         setButtonBounds(cacheCountButton, clearCacheFileButton);
         clearCacheFileButton.addActionListener(e -> {
-            FilterCache<String, Byte> cache = SSRFChecker.INSTANCE.getFilter().getCache();
+            FilterCache<String, Byte> cache = DeduplicationFilterCacheManager.INSTANCE.getCache();
             cache.clear();
         });
 
         JButton deleteCacheFileButton = new JButton("删除缓存文件");
         setButtonBounds(clearCacheFileButton, deleteCacheFileButton);
         deleteCacheFileButton.addActionListener(e -> {
-            FilterCache<String, Byte> cache = SSRFChecker.INSTANCE.getFilter().getCache();
+            FilterCache<String, Byte> cache = DeduplicationFilterCacheManager.INSTANCE.getCache();
             cache.delete();
         });
 
         JButton saveCacheFileButton = new JButton("保存缓存文件");
         setButtonBounds(deleteCacheFileButton, saveCacheFileButton);
         saveCacheFileButton.addActionListener(e -> {
-            FilterCache<String, Byte> cache = SSRFChecker.INSTANCE.getFilter().getCache();
+            FilterCache<String, Byte> cache = DeduplicationFilterCacheManager.INSTANCE.getCache();
             try {
                 FilterCache.setPath(cacheSetting.getCacheFilePathHaveName());
                 cache.store();

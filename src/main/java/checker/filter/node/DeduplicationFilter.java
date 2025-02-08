@@ -1,36 +1,33 @@
-package checker.filter;
+package checker.filter.node;
 
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.params.HttpParameterType;
 import burp.api.montoya.http.message.params.ParsedHttpParameter;
 import burp.api.montoya.http.message.requests.HttpRequest;
+import checker.filter.cache.DeduplicationFilterCacheManager;
+import checker.filter.IFilter;
 import checker.filter.cache.FilterCache;
-import cn.hutool.cache.CacheUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.crypto.digest.MD5;
-import lombok.Getter;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-@Getter
-public class RequestResponseFilter {
-
+public class DeduplicationFilter implements IFilter {
     private List<ParsedHttpParameter> parameters;
+
     private final FilterCache<String, Byte> cache;
 
-    public RequestResponseFilter() {
-        try {
-            cache = new FilterCache<>(CacheUtil.newLRUCache(50000));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public DeduplicationFilter() {
+        DeduplicationFilterCacheManager.initCacheManager(50000);
+        cache = DeduplicationFilterCacheManager.INSTANCE.getCache();
     }
 
-    public boolean filter(HttpRequestResponse baseRequestResponse, Integer id) {
+    @Override
+    public boolean doFilter(HttpRequestResponse baseRequestResponse, Integer id) {
         // 1. 判断是否是重新检测 | 重新检测的任务不进行过滤，如果id不为空，代表是重新检测的任务
         if (id != null) {
             return true;
@@ -126,4 +123,9 @@ public class RequestResponseFilter {
         String value = parameter.value().toLowerCase();
         return name.contains("url") || value.contains("http") || value.contains("https");
     }
+
+    public List<ParsedHttpParameter> getUpdateParameters() {
+        return parameters;
+    }
+
 }

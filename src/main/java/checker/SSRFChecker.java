@@ -5,13 +5,13 @@ import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.params.HttpParameter;
 import burp.api.montoya.http.message.params.ParsedHttpParameter;
 import burp.api.montoya.http.message.requests.HttpRequest;
-import checker.filter.RequestResponseFilter;
+import checker.filter.FilterChain;
+import checker.filter.node.DeduplicationFilter;
 import checker.updater.ParamsUpdater;
 import cn.hutool.core.util.RandomUtil;
 import common.logger.AutoSSRFLogger;
 import common.provider.CollaboratorProvider;
 import common.provider.UIProvider;
-import lombok.Getter;
 import ui.dashboard.DashboardTable;
 import ui.dashboard.DashboardTableData;
 import ui.dashboard.StatusEnum;
@@ -28,8 +28,8 @@ public enum SSRFChecker {
     private final CollaboratorProvider collaboratorProvider = CollaboratorProvider.INSTANCE;
     private final DashboardTable dashboardTable = UIProvider.INSTANCE.getUiMain().getDashboardTab().getTable();
     private final VulnTable vulnTable = UIProvider.INSTANCE.getUiMain().getVulnTab().getTable();
-    @Getter
-    private final RequestResponseFilter filter = new RequestResponseFilter();
+
+    private final FilterChain filter = new FilterChain();
     private final ParamsUpdater updater = new ParamsUpdater();
 
     public void check(HttpRequestResponse baseRequestResponse, Integer id) {
@@ -38,14 +38,16 @@ public enum SSRFChecker {
         CollaboratorPayload payload = collaboratorProvider.generatePayload();
 
         // 过滤
-        if (!filter.filter(baseRequestResponse, id)) {
+        DeduplicationFilter deduplicationFilter = new DeduplicationFilter();
+        filter.addFilter(deduplicationFilter);
+        if (!filter.doFilter(baseRequestResponse, id)) {
             return;
         }
 
         // 参数填充&构建请求
         HttpRequest newRequest = updateParameterAndBuildRequest(
                 request,
-                filter.getParameters(),
+                deduplicationFilter.getUpdateParameters(),
                 payload
         );
         if (newRequest == null) {
