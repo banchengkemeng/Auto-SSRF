@@ -14,6 +14,9 @@ Auto-SSRF是一款基于BurpSuite MontoyaApi的自动SSRF漏洞探测插件, 捕
 ![img_1.png](https://code-pictures.oss-cn-beijing.aliyuncs.com/auto_ssrf_img_1.png)
 ![img.png](https://code-pictures.oss-cn-beijing.aliyuncs.com/auto_ssrf_img_2.png)
 
+# 注意事项
+- 仅支持新版支持Montoya API的Burp Suite, 大概是2023.3之后的版本
+
 ## Q&&A
 Q: 插件配置中的被动扫描、扫描Proxy等等指什么?
 
