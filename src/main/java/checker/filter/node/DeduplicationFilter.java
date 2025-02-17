@@ -4,8 +4,8 @@ import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.params.HttpParameterType;
 import burp.api.montoya.http.message.params.ParsedHttpParameter;
 import burp.api.montoya.http.message.requests.HttpRequest;
-import checker.filter.cache.DeduplicationFilterCacheManager;
 import checker.filter.IFilter;
+import checker.filter.cache.DeduplicationFilterCacheManager;
 import checker.filter.cache.FilterCache;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
@@ -17,8 +17,6 @@ import java.util.Comparator;
 import java.util.List;
 
 public class DeduplicationFilter implements IFilter {
-    private List<ParsedHttpParameter> parameters;
-
     private final FilterCache<String, Byte> cache;
 
     public DeduplicationFilter() {
@@ -62,8 +60,6 @@ public class DeduplicationFilter implements IFilter {
             return null;
         }
 
-        List<ParsedHttpParameter> updateParameters = new ArrayList<>();
-
         // Key按字典序排序
         parameters.sort(Comparator.comparing(ParsedHttpParameter::name));
 
@@ -71,25 +67,22 @@ public class DeduplicationFilter implements IFilter {
         ArrayList<String> params = new ArrayList<>();
         ArrayList<String> cookies = new ArrayList<>();
         for (ParsedHttpParameter parameter : parameters) {
-            if (!checkParameter(parameter)) {
-                continue;
-            }
 
             HttpParameterType type = parameter.type();
+            String paramString = String.format("%s=%s", parameter.name(), parameter.value());
+            // GET和POST参数: 取key和value
+            // COOKIE参数: 只取key
             switch (type) {
                 case URL: {
-                    queries.add(parameter.name());
-                    updateParameters.add(parameter);
+                    queries.add(paramString);
                     break;
                 }
                 case COOKIE: {
                     cookies.add(parameter.name());
-                    updateParameters.add(parameter);
                     break;
                 }
                 default: {
-                    params.add(parameter.name());
-                    updateParameters.add(parameter);
+                    params.add(paramString);
                     break;
                 }
             }
@@ -102,13 +95,11 @@ public class DeduplicationFilter implements IFilter {
             queryString = String.format("path: %s|query: %s", path, queries);
         }
         if (!params.isEmpty()) {
-            paramString = String.format("path %s|param: %s", path, params);
+            paramString = String.format("path: %s|param: %s", path, params);
         }
         if (!cookies.isEmpty()) {
             cookieString = String.format("cookie: %s", cookies);
         }
-
-        this.parameters = updateParameters;
 
         // 三种参数都没有，直接结束
         if (StrUtil.isAllBlank(queryString, paramString, cookieString)) {
@@ -117,15 +108,4 @@ public class DeduplicationFilter implements IFilter {
 
         return baseURL + queryString + paramString + cookieString;
     }
-
-    private boolean checkParameter(ParsedHttpParameter parameter) {
-        String name = parameter.name().toLowerCase();
-        String value = parameter.value().toLowerCase();
-        return name.contains("url") || value.contains("http") || value.contains("https");
-    }
-
-    public List<ParsedHttpParameter> getUpdateParameters() {
-        return parameters;
-    }
-
 }

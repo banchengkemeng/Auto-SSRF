@@ -52,4 +52,27 @@ public class ParamsUpdater implements IParamsUpdater {
 
         return request;
     }
+
+    public List<HttpParameter> buildUpdateParams(HttpRequest request, String payload) {
+        List<HttpParameter> updateParameters = new ArrayList<>();
+        for (HttpParameter parameter : request.parameters()) {
+            // 与url无关的参数，跳过
+            if (!checkParameter(parameter)) {
+                continue;
+            }
+            HttpParameter newParameter = HttpParameter.parameter(
+                    parameter.name(),
+                    payload,
+                    parameter.type()
+            );
+            updateParameters.add(newParameter);
+        }
+        return updateParameters;
+    }
+
+    public static boolean checkParameter(HttpParameter parameter) {
+        String name = parameter.name().toLowerCase();
+        String value = parameter.value().toLowerCase();
+        return name.contains("url") || value.contains("http") || value.contains("https");
+    }
 }

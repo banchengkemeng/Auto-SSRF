@@ -3,22 +3,22 @@ package checker;
 import burp.api.montoya.collaborator.CollaboratorPayload;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.params.HttpParameter;
-import burp.api.montoya.http.message.params.ParsedHttpParameter;
 import burp.api.montoya.http.message.requests.HttpRequest;
 import checker.filter.FilterChain;
 import checker.filter.node.DeduplicationFilter;
+import checker.filter.node.URLParamsFilter;
 import checker.updater.ParamsUpdater;
 import cn.hutool.core.util.RandomUtil;
 import common.logger.AutoSSRFLogger;
 import common.provider.CollaboratorProvider;
 import common.provider.UIProvider;
+import lombok.Getter;
 import ui.dashboard.DashboardTable;
 import ui.dashboard.DashboardTableData;
 import ui.dashboard.StatusEnum;
 import ui.vuln.VulnTable;
 import ui.vuln.VulnTableData;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public enum SSRFChecker {
@@ -29,7 +29,10 @@ public enum SSRFChecker {
     private final DashboardTable dashboardTable = UIProvider.INSTANCE.getUiMain().getDashboardTab().getTable();
     private final VulnTable vulnTable = UIProvider.INSTANCE.getUiMain().getVulnTab().getTable();
 
-    private final FilterChain filter = new FilterChain();
+    @Getter
+    private final FilterChain filter = new FilterChain()
+            .addFilter("existsUrlParams", new URLParamsFilter())
+            .addFilter("deduplication", new DeduplicationFilter());
     private final ParamsUpdater updater = new ParamsUpdater();
 
     public void check(HttpRequestResponse baseRequestResponse, Integer id) {
@@ -38,8 +41,6 @@ public enum SSRFChecker {
         CollaboratorPayload payload = collaboratorProvider.generatePayload();
 
         // 过滤
-        DeduplicationFilter deduplicationFilter = new DeduplicationFilter();
-        filter.addFilter(deduplicationFilter);
         if (!filter.doFilter(baseRequestResponse, id)) {
             return;
         }
@@ -47,7 +48,6 @@ public enum SSRFChecker {
         // 参数填充&构建请求
         HttpRequest newRequest = updateParameterAndBuildRequest(
                 request,
-                deduplicationFilter.getUpdateParameters(),
                 payload
         );
         if (newRequest == null) {
@@ -98,21 +98,15 @@ public enum SSRFChecker {
 
     private HttpRequest updateParameterAndBuildRequest(
             HttpRequest request,
-            List<ParsedHttpParameter> parameters,
             CollaboratorPayload payload
     ) {
         // 更新参数
-        List<HttpParameter> updateParameters = new ArrayList<>();
-        for (HttpParameter parameter : parameters) {
-            HttpParameter newParameter = HttpParameter.parameter(
-                    parameter.name(),
-                    "http://" + payload.toString() + "/" + RandomUtil.randomString(6),
-                    parameter.type()
-            );
-            updateParameters.add(newParameter);
-        }
+        List<HttpParameter> updateParams = updater.buildUpdateParams(
+                request,
+                "http://" + payload.toString() + "/" + RandomUtil.randomString(6)
+        );
 
         // 更新请求
-        return updater.update(request, updateParameters);
+        return updater.update(request, updateParams);
     }
 }
